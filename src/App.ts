@@ -40,30 +40,47 @@ export default class App {
         this.m_server.on("error", (err) => {
             console.log("[SERVER ERROR]:", err.toString());
         });
+
+        setInterval(() => {
+            this.m_clients.forEach(client => {
+                while (client.queue.length > 0) {
+                    let buf = client.queue.splice(0, 1)[0];
+                    let s = buf.toString();
+                    if (s === "ping") {
+                        client.pong();
+                    }
+                }
+            });
+        }, 0);
     }
 
     private m_server: Server | undefined;
     private m_clients: Client[] = [];
 }
 
-// const app = new App();
-// app.run();
+const app = new App();
+app.run();
 
+// 模拟客户端的测试
 // setTimeout(() => {
 //     let socket = net.createConnection(PORT, "127.0.0.1", () => {
 //         console.log("[CLIENT CONNECT]");
 //     });
 
-//     let client = new Client(socket, client => {
-//     });
+//     let client = new Client(socket);
 //     client.socket.on("connect", () => {
-//         let buf = Buffer.from("hello socket");
-//         client.encodeSend(buf);
+//         setInterval(() => {
+//             client.ping();
+//         }, 1000);
+//         client.ping();
+//     });
+//     client.socket.on("data", (data) => {
+//         client.decode(data);
+
+//         while (client.queue.length > 0) {
+//             let buf = client.queue.splice(0, 1);
+//             let s = buf.toString();
+//             console.log(s);
+//         }
 //     });
 // }, 1000);
-
-let buf1 = Buffer.from("hello world");
-console.log(buf1.length);
-
-let buf2 = Buffer.from(buf1.buffer, 2);
-console.log(buf2.length);

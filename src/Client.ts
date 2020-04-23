@@ -6,11 +6,12 @@
 
 import { Socket } from "net";
 import process from "process";
+import { timingSafeEqual } from "crypto";
 
 const HEAD_SIZE = 4;
 
 export default class Client {
-    public constructor(socket: Socket, closeListener: (client: Client) => void) {
+    public constructor(socket: Socket, closeListener?: (client: Client) => void) {
         this.m_socket = socket;
         this.m_closeListener = closeListener;
     }
@@ -19,17 +20,22 @@ export default class Client {
         return this.m_socket;
     }
 
+    public get queue() {
+        return this.m_queue;
+    }
+
     public run() {
         this.m_socket.on("close", (had_error) => {
             console.log("[CLIENT CLOSE], had_error =", had_error);
-            this.m_closeListener(this);
+            if (this.m_closeListener) {
+                this.m_closeListener(this);
+            }
         });
         this.m_socket.on("connect", () => {
             console.log("[CLIENT CONNECT]");
         });
         this.m_socket.on("data", (data) => {
             console.log("[CLIENT DATA]");
-
             this.decode(data);
         });
         this.m_socket.on("drain", () => {
@@ -68,20 +74,25 @@ export default class Client {
         while (this.m_buffer.length >= this.m_readSize) {
             if (this.m_isReadHead) {
                 this.m_readSize = this.m_buffer.readUInt32BE();
-                console.log("readSize =", this.m_readSize);
                 this.m_isReadHead = false;
-                this.m_buffer = Buffer.from(this.m_buffer, HEAD_SIZE, 4);
-                console.log("buffer.length =", this.m_buffer.length);
-                process.exit();
+                this.m_buffer = this.m_buffer.slice(HEAD_SIZE);
             } else {
-                let buf = Buffer.from(this.m_buffer, 0, this.m_readSize);
+                let buf = this.m_buffer.slice(0, this.m_readSize);
                 this.m_queue.push(buf);
 
-                this.m_buffer = Buffer.from(this.m_buffer, this.m_readSize);
+                this.m_buffer = this.m_buffer.slice(this.m_readSize);
                 this.m_readSize = HEAD_SIZE;
                 this.m_isReadHead = true;
             }
         }
+    }
+
+    public ping(): void {
+        this.encodeSend(Buffer.from("ping"));
+    }
+
+    public pong(): void {
+        this.encodeSend(Buffer.from("pong"));
     }
 
     private m_socket: Socket;
@@ -89,5 +100,5 @@ export default class Client {
     private m_isReadHead: boolean = true;
     private m_readSize: number = HEAD_SIZE;
     private m_queue: Buffer[] = [];
-    private m_closeListener: (client: Client) => void;
+    private m_closeListener: ((client: Client) => void) | undefined;
 }
