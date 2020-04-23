@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "launch": "tsc && node ./node_modules/pm2/bin/pm2 start ./build/App.js"
   },
   "repository": {
     "type": "git",
@@ -15,6 +16,7 @@
   "dependencies": {
     "@types/lodash": "^4.14.150",
     "@types/node": "^13.13.2",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.15",
+    "pm2": "^4.3.1"
   }
 }

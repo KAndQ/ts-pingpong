@@ -8,8 +8,7 @@ import net from "net";
 import { Socket, Server } from "net";
 import Client from "./Client";
 import _ from "lodash";
-
-const PORT = 48080;
+import { PORT } from "./Consts";
 
 export default class App {
     /// 运行
@@ -60,27 +59,3 @@ export default class App {
 
 const app = new App();
 app.run();
-
-// 模拟客户端的测试
-// setTimeout(() => {
-//     let socket = net.createConnection(PORT, "127.0.0.1", () => {
-//         console.log("[CLIENT CONNECT]");
-//     });
-
-//     let client = new Client(socket);
-//     client.socket.on("connect", () => {
-//         setInterval(() => {
-//             client.ping();
-//         }, 1000);
-//         client.ping();
-//     });
-//     client.socket.on("data", (data) => {
-//         client.decode(data);
-
-//         while (client.queue.length > 0) {
-//             let buf = client.queue.splice(0, 1);
-//             let s = buf.toString();
-//             console.log(s);
-//         }
-//     });
-// }, 1000);
